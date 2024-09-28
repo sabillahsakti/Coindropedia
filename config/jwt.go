@@ -21,6 +21,7 @@ var JWT_KEY = []byte(os.Getenv("JWT_KEY"))
 
 // Define a struct for JWT claims
 type JWTClaim struct {
-	Username string
+	ID       string `json:"id"`       // Pastikan ada tag JSON
+	Username string `json:"username"` // Pastikan ada tag JSON
 	jwt.RegisteredClaims
 }

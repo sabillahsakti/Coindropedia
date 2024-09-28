@@ -23,7 +23,7 @@ func GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(airdropInput) == 0 {
-		helper.ResponseJson(w, http.StatusNotFound, "No chats found for this user")
+		helper.ResponseJson(w, http.StatusNotFound, "No Airdrop found for this user")
 		return
 	}
 

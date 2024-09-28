@@ -1,8 +1,10 @@
 package middlewares
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/sabillahsakti/coindropedia/config"
@@ -46,6 +48,15 @@ func JWTMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		// Asumsikan claims.UserID adalah string, maka kita konversi ke int
+		userID, err := strconv.Atoi(claims.ID)
+		if err != nil {
+			response := map[string]string{"message": "invalid user id"}
+
+			helper.ResponseJson(w, http.StatusBadRequest, response)
+			return
+		}
+		ctx := context.WithValue(r.Context(), "user_id", userID) // `claims.ID` adalah id user dari token
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

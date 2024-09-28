@@ -3,6 +3,7 @@ package authcontroller
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -51,8 +52,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	expTime := time.Now().Add(time.Minute * 15)
 	claims := &config.JWTClaim{
 		Username: user.Username,
+		ID:       strconv.Itoa(int(user.ID)),
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "be-fp",
+			Issuer:    "evoting",
 			ExpiresAt: jwt.NewNumericDate(expTime),
 		},
 	}
