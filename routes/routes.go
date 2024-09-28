@@ -14,14 +14,15 @@ func SetupRoutes(r *mux.Router) {
 	r.HandleFunc("/logout", authcontroller.Logout).Methods("GET")
 
 	//Airdrop routes
-	r.HandleFunc("/airdrop", airdropcontroller.Show).Methods("GET")
-	r.HandleFunc("/airdrop/{id}", airdropcontroller.Show).Methods("GET")
+	r.HandleFunc("/airdrop", airdropcontroller.GetAll).Methods("GET")
+	r.HandleFunc("/airdrop/{id}", airdropcontroller.GetByID).Methods("GET")
 
 	// Protected routes (under /api)
 	api := r.PathPrefix("/api").Subrouter()
 
 	// API Airdrop
 	api.HandleFunc("/airdrop", airdropcontroller.Create).Methods("POST")
+	api.HandleFunc("/airdrop/{id}", airdropcontroller.Update).Methods("PUT")
 	api.HandleFunc("/airdrop/{id}", airdropcontroller.Delete).Methods("DELETE")
 
 	// Add middleware to the API subrouter for JWT authentication

@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func Show(w http.ResponseWriter, r *http.Request) {
+func GetAll(w http.ResponseWriter, r *http.Request) {
 	var airdropInput []models.Airdrop
 
 	//Ambil data dari database
@@ -28,6 +28,90 @@ func Show(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helper.ResponseJson(w, http.StatusOK, airdropInput)
+
+}
+
+func GetByID(w http.ResponseWriter, r *http.Request) {
+	//Mengambil ID dari URL
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		response := map[string]string{"message": "Invalid ID"}
+		helper.ResponseJson(w, http.StatusBadRequest, response)
+		return
+	}
+
+	var airdrop models.Airdrop
+	if err := config.DB.First(&airdrop, id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			response := map[string]string{"message": "Airdrop not found"}
+			helper.ResponseJson(w, http.StatusNotFound, response)
+			return
+		}
+		response := map[string]string{"message": "Error finding airdrop"}
+		helper.ResponseJson(w, http.StatusInternalServerError, response)
+		return
+	}
+
+	helper.ResponseJson(w, http.StatusOK, airdrop)
+
+}
+
+func Create(w http.ResponseWriter, r *http.Request) {
+	//Mengambil inputan json dari front end
+
+	var airdropInput models.Airdrop
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&airdropInput); err != nil {
+		response := map[string]string{"message": err.Error()}
+		helper.ResponseJson(w, http.StatusBadRequest, response)
+		return
+	}
+
+	defer r.Body.Close()
+
+	// Insert ke database
+	if err := config.DB.Create(&airdropInput).Error; err != nil {
+		response := map[string]string{"message": err.Error()}
+		helper.ResponseJson(w, http.StatusInternalServerError, response)
+		return
+	}
+
+	response := map[string]string{"Message": "Berhasi input airdropl"}
+	helper.ResponseJson(w, http.StatusOK, response)
+}
+
+func Update(w http.ResponseWriter, r *http.Request) {
+
+	var airdrop models.Airdrop
+
+	//Amil dari body
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&airdrop); err != nil {
+		response := map[string]string{"message": err.Error()}
+		helper.ResponseJson(w, http.StatusBadRequest, response)
+		return
+	}
+
+	defer r.Body.Close()
+
+	//Mengambil ID dari URL
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		response := map[string]string{"message": "Invalid ID"}
+		helper.ResponseJson(w, http.StatusBadRequest, response)
+		return
+	}
+
+	if config.DB.Where("id = ?", id).Updates(&airdrop).RowsAffected == 0 {
+		helper.ResponseError(w, http.StatusBadRequest, "Tidak dapat mengupdate airdrop")
+		return
+	}
+
+	airdrop.ID = id
+
+	helper.ResponseJson(w, http.StatusOK, airdrop)
 
 }
 
@@ -64,28 +148,4 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	response := map[string]string{"message": "Airdrop deleted successfully"}
 	helper.ResponseJson(w, http.StatusOK, response)
 
-}
-
-func Create(w http.ResponseWriter, r *http.Request) {
-	//Mengambil inputan json dari front end
-
-	var airdropInput models.Airdrop
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&airdropInput); err != nil {
-		response := map[string]string{"message": err.Error()}
-		helper.ResponseJson(w, http.StatusBadRequest, response)
-		return
-	}
-
-	defer r.Body.Close()
-
-	// Insert ke database
-	if err := config.DB.Create(&airdropInput).Error; err != nil {
-		response := map[string]string{"message": err.Error()}
-		helper.ResponseJson(w, http.StatusInternalServerError, response)
-		return
-	}
-
-	response := map[string]string{"Message": "Berhasi input airdropl"}
-	helper.ResponseJson(w, http.StatusOK, response)
 }
